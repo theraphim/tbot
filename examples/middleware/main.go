@@ -19,7 +19,7 @@ func stat(h tbot.UpdateHandler) tbot.UpdateHandler {
 func main() {
 	bot := tbot.New(os.Getenv("TELEGRAM_TOKEN"))
 	c := bot.Client()
-	bot.Use(stat) // add stat middleware to bot
+	// bot.Use(stat) // add stat middleware to bot
 	bot.HandleMessage("", func(m *tbot.Message) {
 		c.SendMessage(m.Chat.ID, "hello!")
 	})
