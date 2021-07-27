@@ -10,7 +10,7 @@ import (
 	"time"
 )
 
-var (
+const (
 	apiBaseURL = "https://api.telegram.org"
 )
 
