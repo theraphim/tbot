@@ -352,3 +352,7 @@ func (s *Server) handleMessage(msg *Message) {
 		s.defaultMessageHandler(msg)
 	}
 }
+
+func (s *Server) HandleDefault(handler handlerFunc) {
+	s.defaultMessageHandler = handler
+}
