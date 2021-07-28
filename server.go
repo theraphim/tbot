@@ -226,17 +226,18 @@ func (s *Server) processLongPollUpdates() error {
 	endpoint.WriteString("/bot")
 	endpoint.WriteString(s.token)
 	endpoint.WriteString("/getUpdates")
-	req, err := http.NewRequestWithContext(s.ctx, http.MethodGet, endpoint.String(), nil)
-	if err != nil {
-		return err
-	}
 	params := url.Values{}
 	params.Set("timeout", "60")
 	for {
-		params.Set("offset", strconv.Itoa(s.nextOffset))
+		if s.nextOffset != 0 {
+			params.Set("offset", strconv.Itoa(s.nextOffset))
+		}
 		ctx, cancel := context.WithTimeout(s.ctx, time.Second*120)
-		dreq := req.WithContext(ctx)
-		dreq.URL.RawQuery = params.Encode()
+		req, err := http.NewRequestWithContext(ctx, http.MethodGet, endpoint.String(), nil)
+		if err == nil {
+			return err
+		}
+		req.URL.RawQuery = params.Encode()
 		resp, err := s.httpClient.Do(req)
 		cancel()
 		if err != nil {

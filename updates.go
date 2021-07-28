@@ -1,9 +1,5 @@
 package tbot
 
-import (
-	"encoding/json"
-)
-
 // User is telegram user
 type User struct {
 	ID                      int    `json:"id"`
@@ -50,17 +46,6 @@ type Chat struct {
 type ChatLocation struct {
 	Location *Location `json:"location"`
 	Address  string    `json:"address"`
-}
-
-// UnmarshalJSON implements json.Unmarshaler
-func (c *Chat) UnmarshalJSON(data []byte) error {
-	var s Chat
-	err := json.Unmarshal(data, &s)
-	if err != nil {
-		return err
-	}
-	*c = s
-	return nil
 }
 
 // MessageEntity represents one special entity in a text message.
