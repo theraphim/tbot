@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -13,7 +14,6 @@ import (
 type Client struct {
 	token         string
 	baseURL       string
-	url           string
 	httpClient    *http.Client
 	nextOffset    int
 	logger        Logger
@@ -22,13 +22,22 @@ type Client struct {
 	updatesParams url.Values
 }
 
+func (s *Client) getUrlFor(call string) string {
+	var b strings.Builder
+	b.WriteString(s.baseURL)
+	b.WriteString("/bot")
+	b.WriteString(s.token)
+	b.WriteString("/")
+	b.WriteString(call)
+	return b.String()
+}
+
 // NewClient creates new Telegram API client
 func NewClient(token string, httpClient *http.Client, baseURL string) *Client {
 	return &Client{
 		token:      token,
 		httpClient: httpClient,
 		baseURL:    baseURL,
-		url:        fmt.Sprintf("%s/bot%s/", baseURL, token) + "%s",
 	}
 }
 
@@ -609,7 +618,7 @@ func (c *Client) SendVoiceFile(chatID string, filename string, opts ...sendOptio
 var (
 	OptLength = func(length int) sendOption {
 		return func(v url.Values) {
-			v.Set("length", fmt.Sprint(length))
+			v.Set("length", strconv.Itoa(length))
 		}
 	}
 )
@@ -731,7 +740,7 @@ func (c *Client) SendMediaGroup(chatID string, media []InputMedia, opts ...sendO
 var (
 	OptLivePeriod = func(period int) sendOption {
 		return func(v url.Values) {
-			v.Set("live_period", fmt.Sprint(period))
+			v.Set("live_period", strconv.Itoa(period))
 		}
 	}
 )
@@ -751,8 +760,8 @@ SendLocation sends point on the map to chat. Available options:
 func (c *Client) SendLocation(chatID string, latitude, longitude float64, opts ...sendOption) (*Message, error) {
 	req := url.Values{}
 	req.Set("chat_id", chatID)
-	req.Set("latitude", fmt.Sprint(latitude))
-	req.Set("longitude", fmt.Sprint(longitude))
+	req.Set("latitude", strconv.FormatFloat(latitude, 'f', -1, 64))
+	req.Set("longitude", strconv.FormatFloat(longitude, 'f', -1, 64))
 	for _, opt := range opts {
 		opt(req)
 	}

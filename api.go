@@ -24,7 +24,7 @@ type apiResponse struct {
 }
 
 func (c *Client) doRequest(method string, request url.Values, response interface{}) error {
-	endpoint := fmt.Sprintf(c.url, method)
+	endpoint := c.getUrlFor(method)
 	var resp *http.Response
 	var err error
 	if request == nil {
@@ -52,7 +52,7 @@ func (c *Client) doRequest(method string, request url.Values, response interface
 }
 
 func (c *Client) doRequestWithFiles(method string, request url.Values, response interface{}, files ...inputFile) error {
-	endpoint := fmt.Sprintf(c.url, method)
+	endpoint := c.getUrlFor(method)
 	r, w := io.Pipe()
 
 	done := make(chan struct{})
