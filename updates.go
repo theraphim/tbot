@@ -2,7 +2,6 @@ package tbot
 
 import (
 	"encoding/json"
-	"fmt"
 )
 
 // User is telegram user
@@ -28,63 +27,39 @@ type ChatPhoto struct {
 
 // Chat represents a chat
 type Chat struct {
-	ID                          string
-	Type                        string
-	Title                       string
-	Username                    string
-	FirstName                   string
-	LastName                    string
-	Photo                       *ChatPhoto
-	Description                 string
-	InviteLink                  string
-	PinnedMessage               *Message
-	Permissions                 *ChatPermissions
-	StickerSetName              string
-	AllMembersAreAdministrators bool // deprecated
-	SlowModeDelay               int
-	CanSetStickerSet            bool
+	ID                    int64            `json:"id"`
+	Type                  string           `json:"type"`
+	Title                 string           `json:"title"`
+	Username              string           `json:"username"`
+	FirstName             string           `json:"first_name"`
+	LastName              string           `json:"last_name"`
+	Photo                 *ChatPhoto       `json:"photo"`
+	Bio                   string           `json:"bio"`
+	Description           string           `json:"description"`
+	InviteLink            string           `json:"invite_link"`
+	PinnedMessage         *Message         `json:"pinned_message"`
+	Permissions           *ChatPermissions `json:"permissions"`
+	SlowModeDelay         int64            `json:"slow_mode_delay"`
+	MessageAutoDeleteTime int64            `json:"message_auto_delete_time"`
+	StickerSetName        string           `json:"sticker_set_name"`
+	CanSetStickerSet      bool             `json:"can_set_sticker_set"`
+	LinkedChatID          int64            `json:"linked_chat_id"`
+	Location              *ChatLocation    `json:"location"`
+}
+
+type ChatLocation struct {
+	Location *Location `json:"location"`
+	Address  string    `json:"address"`
 }
 
 // UnmarshalJSON implements json.Unmarshaler
 func (c *Chat) UnmarshalJSON(data []byte) error {
-	s := &struct {
-		ID                          int              `json:"id"`
-		Type                        string           `json:"type"`
-		Title                       string           `json:"title"`
-		Username                    string           `json:"username"`
-		FirstName                   string           `json:"first_name"`
-		LastName                    string           `json:"last_name"`
-		Photo                       *ChatPhoto       `json:"photo"`
-		Description                 string           `json:"description"`
-		InviteLink                  string           `json:"invite_link"`
-		PinnedMessage               *Message         `json:"pinned_message"`
-		StickerSetName              string           `json:"sticker_set_name"`
-		Permissions                 *ChatPermissions `json:"permissions"`
-		AllMembersAreAdministrators bool             `json:"all_members_are_administrators"`
-		SlowModeDelay               int              `json:"slow_mode_delay"`
-		CanSetStickerSet            bool             `json:"can_set_sticker_set"`
-	}{}
-	err := json.Unmarshal(data, s)
+	var s Chat
+	err := json.Unmarshal(data, &s)
 	if err != nil {
 		return err
 	}
-	*c = Chat{
-		ID:                          fmt.Sprint(s.ID),
-		Type:                        s.Type,
-		Title:                       s.Title,
-		Username:                    s.Username,
-		FirstName:                   s.FirstName,
-		LastName:                    s.LastName,
-		Photo:                       s.Photo,
-		Description:                 s.Description,
-		InviteLink:                  s.InviteLink,
-		PinnedMessage:               s.PinnedMessage,
-		Permissions:                 s.Permissions,
-		StickerSetName:              s.StickerSetName,
-		AllMembersAreAdministrators: s.AllMembersAreAdministrators,
-		SlowModeDelay:               s.SlowModeDelay,
-		CanSetStickerSet:            s.CanSetStickerSet,
-	}
+	*c = s
 	return nil
 }
 

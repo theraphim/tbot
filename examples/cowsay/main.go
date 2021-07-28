@@ -16,7 +16,7 @@ func main() {
 	bot.HandleMessage("cowsay .+", func(m *tbot.Message) {
 		text := strings.TrimPrefix(m.Text, "cowsay ")
 		cow := fmt.Sprintf("```\n%s\n```", cowsay(text))
-		c.SendMessage(m.Chat.ID, cow, tbot.OptParseModeMarkdown)
+		c.SendMessage(tbot.ChatID(m.Chat.ID), cow, tbot.OptParseModeMarkdown)
 	})
 	bot.Start()
 }

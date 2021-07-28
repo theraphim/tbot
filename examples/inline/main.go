@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"strconv"
 
 	"github.com/yanzay/tbot/v2"
 )
@@ -31,13 +32,13 @@ func main() {
 
 func (a *application) votingHandler(m *tbot.Message) {
 	buttons := makeButtons(0, 0)
-	msg, _ := a.client.SendMessage(m.Chat.ID, "Please vote", tbot.OptInlineKeyboardMarkup(buttons))
-	votingID := fmt.Sprintf("%s:%d", m.Chat.ID, msg.MessageID)
+	msg, _ := a.client.SendMessage(tbot.ChatID(m.Chat.ID), "Please vote", tbot.OptInlineKeyboardMarkup(buttons))
+	votingID := strconv.FormatInt(m.Chat.ID, 10) + ":" + strconv.Itoa(msg.MessageID)
 	a.votings[votingID] = &voting{}
 }
 
 func (a *application) callbackHandler(cq *tbot.CallbackQuery) {
-	votingID := fmt.Sprintf("%s:%d", cq.Message.Chat.ID, cq.Message.MessageID)
+	votingID := strconv.FormatInt(cq.Message.Chat.ID, 10) + ":" + strconv.Itoa(cq.Message.MessageID)
 	v := a.votings[votingID]
 	if cq.Data == "up" {
 		v.ups++
@@ -46,7 +47,7 @@ func (a *application) callbackHandler(cq *tbot.CallbackQuery) {
 		v.downs++
 	}
 	buttons := makeButtons(v.ups, v.downs)
-	a.client.EditMessageReplyMarkup(cq.Message.Chat.ID, cq.Message.MessageID, tbot.OptInlineKeyboardMarkup(buttons))
+	a.client.EditMessageReplyMarkup(tbot.ChatID(cq.Message.Chat.ID), cq.Message.MessageID, tbot.OptInlineKeyboardMarkup(buttons))
 	a.client.AnswerCallbackQuery(cq.ID, tbot.OptText("OK"))
 }
 

@@ -31,5 +31,5 @@ func sendPoll(m *tbot.Message) {
 		"Good",
 		"So so",
 	}
-	client.SendPoll(m.Chat.ID, "How are you?", options)
+	client.SendPoll(tbot.ChatID(m.Chat.ID), "How are you?", options)
 }

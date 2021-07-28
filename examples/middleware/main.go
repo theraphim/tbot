@@ -21,7 +21,7 @@ func main() {
 	c := bot.Client()
 	// bot.Use(stat) // add stat middleware to bot
 	bot.HandleMessage("", func(m *tbot.Message) {
-		c.SendMessage(m.Chat.ID, "hello!")
+		c.SendMessage(tbot.ChatID(m.Chat.ID), "hello!")
 	})
 	err := bot.Start()
 	if err != nil {

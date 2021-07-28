@@ -46,7 +46,7 @@ func TestSendMessage(t *testing.T) {
 		}
 	`)
 
-	msg, err := c.SendMessage("123", "helo")
+	msg, err := c.SendMessage(tbot.ChatID(123), "helo")
 	if err != nil {
 		t.Fatalf("error on sendMessage: %v", err)
 	}
@@ -66,7 +66,7 @@ func TestSendMessageWithOptions(t *testing.T) {
 		}
 	`)
 
-	msg, err := c.SendMessage("123", "helo", tbot.OptParseModeMarkdown,
+	msg, err := c.SendMessage(tbot.ChatID(123), "helo", tbot.OptParseModeMarkdown,
 		tbot.OptDisableWebPagePreview, tbot.OptDisableNotification,
 		tbot.OptReplyToMessageID(1), tbot.OptForceReply, tbot.OptReplyKeyboardRemove)
 	if err != nil {
@@ -85,7 +85,7 @@ func TestForwardMessage(t *testing.T) {
 		}
 	`)
 
-	msg, err := c.ForwardMessage("321", "123", 1)
+	msg, err := c.ForwardMessage(tbot.ChatID(321), tbot.ChatID(123), 1)
 	if err != nil {
 		t.Fatalf("error on forwardMessage: %v", err)
 	}
@@ -101,7 +101,7 @@ func TestSendAudio(t *testing.T) {
 			"result": {"message_id": 321}
 		}
 	`)
-	msg, err := c.SendAudio("123", "aaa")
+	msg, err := c.SendAudio(tbot.ChatID(123), "aaa")
 	if err != nil {
 		t.Fatalf("error on sendAudio: %v", err)
 	}
@@ -117,7 +117,7 @@ func TestSendAudioFile(t *testing.T) {
 			"result": {"message_id": 321}
 		}
 	`)
-	msg, err := c.SendAudioFile("123", "client_test.go")
+	msg, err := c.SendAudioFile(tbot.ChatID(123), "client_test.go")
 	if err != nil {
 		t.Fatalf("error on sendAudioFile: %v", err)
 	}
@@ -133,7 +133,7 @@ func TestSendPhoto(t *testing.T) {
 			"result": {"message_id": 321}
 		}
 	`)
-	msg, err := c.SendPhoto("123", "aaa")
+	msg, err := c.SendPhoto(tbot.ChatID(123), "aaa")
 	if err != nil {
 		t.Fatalf("error on sendPhoto: %v", err)
 	}
@@ -149,7 +149,7 @@ func TestSendPhotoFile(t *testing.T) {
 			"result": {"message_id": 321}
 		}
 	`)
-	msg, err := c.SendPhotoFile("123", "client_test.go")
+	msg, err := c.SendPhotoFile(tbot.ChatID(123), "client_test.go")
 	if err != nil {
 		t.Fatalf("error on sendPhotoFile: %v", err)
 	}

@@ -10,6 +10,22 @@ import (
 	"time"
 )
 
+type SendChatID interface {
+	asChatID() string
+}
+
+type ChatID int64
+
+func (s ChatID) asChatID() string {
+	return strconv.FormatInt(int64(s), 10)
+}
+
+type ChatName string
+
+func (s ChatName) asChatID() string {
+	return string(s)
+}
+
 // Client is a low-level Telegram client
 type Client struct {
 	token         string
@@ -174,6 +190,15 @@ var (
 	}
 )
 
+func withChat(chatID SendChatID, opts ...sendOption) url.Values {
+	req := url.Values{}
+	req.Set("chat_id", chatID.asChatID())
+	for _, opt := range opts {
+		opt(req)
+	}
+	return req
+}
+
 /*
 SendMessage sends message to telegram chat. Available options:
 	- OptParseModeHTML
@@ -188,13 +213,9 @@ SendMessage sends message to telegram chat. Available options:
 	- OptForceReply
 	- OptForceReplySelective
 */
-func (c *Client) SendMessage(chatID string, text string, opts ...sendOption) (*Message, error) {
-	req := url.Values{}
-	req.Set("chat_id", chatID)
+func (c *Client) SendMessage(chatID SendChatID, text string, opts ...sendOption) (*Message, error) {
+	req := withChat(chatID, opts...)
 	req.Set("text", text)
-	for _, opt := range opts {
-		opt(req)
-	}
 	msg := &Message{}
 	err := c.doRequest("sendMessage", req, msg)
 	return msg, err
@@ -204,14 +225,10 @@ func (c *Client) SendMessage(chatID string, text string, opts ...sendOption) (*M
 ForwardMessage forwards message from one chat to another. Available options:
 	- OptDisableNotification
 */
-func (c *Client) ForwardMessage(chatID, fromChatID string, messageID int, opts ...sendOption) (*Message, error) {
-	req := url.Values{}
-	req.Set("chat_id", chatID)
-	req.Set("from_chat_id", fromChatID)
+func (c *Client) ForwardMessage(chatID, fromChatID SendChatID, messageID int, opts ...sendOption) (*Message, error) {
+	req := withChat(chatID, opts...)
+	req.Set("from_chat_id", fromChatID.asChatID())
 	req.Set("message_id", strconv.Itoa(messageID))
-	for _, opt := range opts {
-		opt(req)
-	}
 	msg := &Message{}
 	err := c.doRequest("forwardMessage", req, msg)
 	return msg, err
@@ -253,13 +270,9 @@ SendAudio sends pre-uploaded audio to the chat. Pass fileID of the uploaded file
 	- OptForceReply
 	- OptForceReplySelective
 */
-func (c *Client) SendAudio(chatID string, fileID string, opts ...sendOption) (*Message, error) {
-	req := url.Values{}
-	req.Set("chat_id", chatID)
+func (c *Client) SendAudio(chatID SendChatID, fileID string, opts ...sendOption) (*Message, error) {
+	req := withChat(chatID, opts...)
 	req.Set("audio", fileID)
-	for _, opt := range opts {
-		opt(req)
-	}
 	msg := &Message{}
 	err := c.doRequest("sendAudio", req, msg)
 	return msg, err
@@ -282,12 +295,8 @@ SendAudioFile sends file contents as an audio to the chat. Pass filename to send
 	- OptForceReply
 	- OptForceReplySelective
 */
-func (c *Client) SendAudioFile(chatID string, filename string, opts ...sendOption) (*Message, error) {
-	req := url.Values{}
-	req.Set("chat_id", chatID)
-	for _, opt := range opts {
-		opt(req)
-	}
+func (c *Client) SendAudioFile(chatID SendChatID, filename string, opts ...sendOption) (*Message, error) {
+	req := withChat(chatID, opts...)
 	msg := &Message{}
 	err := c.doRequestWithFiles("sendAudio", req, msg, inputFile{field: "audio", name: filename})
 	return msg, err
@@ -316,13 +325,9 @@ SendPhoto sends pre-uploaded photo to the chat. Pass fileID of the photo. Availa
 	- OptForceReply
 	- OptForceReplySelective
 */
-func (c *Client) SendPhoto(chatID string, fileID string, opts ...sendOption) (*Message, error) {
-	req := url.Values{}
-	req.Set("chat_id", chatID)
+func (c *Client) SendPhoto(chatID SendChatID, fileID string, opts ...sendOption) (*Message, error) {
+	req := withChat(chatID, opts...)
 	req.Set("photo", fileID)
-	for _, opt := range opts {
-		opt(req)
-	}
 	msg := &Message{}
 	err := c.doRequest("sendPhoto", req, msg)
 	return msg, err
@@ -342,12 +347,8 @@ SendPhotoFile sends photo file contents to the chat. Pass filename to send. Avai
 	- OptForceReply
 	- OptForceReplySelective
 */
-func (c *Client) SendPhotoFile(chatID string, filename string, opts ...sendOption) (*Message, error) {
-	req := url.Values{}
-	req.Set("chat_id", chatID)
-	for _, opt := range opts {
-		opt(req)
-	}
+func (c *Client) SendPhotoFile(chatID SendChatID, filename string, opts ...sendOption) (*Message, error) {
+	req := withChat(chatID, opts...)
 	msg := &Message{}
 	err := c.doRequestWithFiles("sendPhoto", req, msg, inputFile{field: "photo", name: filename})
 	return msg, err
@@ -367,13 +368,9 @@ SendDocument sends document to the chat. Pass fileID of the document. Available 
 	- OptForceReply
 	- OptForceReplySelective
 */
-func (c *Client) SendDocument(chatID string, fileID string, opts ...sendOption) (*Message, error) {
-	req := url.Values{}
-	req.Set("chat_id", chatID)
+func (c *Client) SendDocument(chatID SendChatID, fileID string, opts ...sendOption) (*Message, error) {
+	req := withChat(chatID, opts...)
 	req.Set("document", fileID)
-	for _, opt := range opts {
-		opt(req)
-	}
 	msg := &Message{}
 	err := c.doRequest("sendDocument", req, msg)
 	return msg, err
@@ -393,12 +390,8 @@ SendDocumentFile sends document file contents to the chat. Pass filename to send
 	- OptForceReply
 	- OptForceReplySelective
 */
-func (c *Client) SendDocumentFile(chatID string, filename string, opts ...sendOption) (*Message, error) {
-	req := url.Values{}
-	req.Set("chat_id", chatID)
-	for _, opt := range opts {
-		opt(req)
-	}
+func (c *Client) SendDocumentFile(chatID SendChatID, filename string, opts ...sendOption) (*Message, error) {
+	req := withChat(chatID, opts...)
 	msg := &Message{}
 	err := c.doRequestWithFiles("sendDocument", req, msg, inputFile{field: "document", name: filename})
 	return msg, err
@@ -439,13 +432,9 @@ SendVideo sends pre-uploaded video to chat. Pass fileID of the uploaded video. A
 	- OptForceReply
 	- OptForceReplySelective
 */
-func (c *Client) SendVideo(chatID string, fileID string, opts ...sendOption) (*Message, error) {
-	req := url.Values{}
-	req.Set("chat_id", chatID)
+func (c *Client) SendVideo(chatID SendChatID, fileID string, opts ...sendOption) (*Message, error) {
+	req := withChat(chatID, opts...)
 	req.Set("video", fileID)
-	for _, opt := range opts {
-		opt(req)
-	}
 	msg := &Message{}
 	err := c.doRequest("sendVideo", req, msg)
 	return msg, err
@@ -469,12 +458,8 @@ SendVideoFile sends video file contents to the chat. Pass filename to send. Avai
 	- OptForceReply
 	- OptForceReplySelective
 */
-func (c *Client) SendVideoFile(chatID string, filename string, opts ...sendOption) (*Message, error) {
-	req := url.Values{}
-	req.Set("chat_id", chatID)
-	for _, opt := range opts {
-		opt(req)
-	}
+func (c *Client) SendVideoFile(chatID SendChatID, filename string, opts ...sendOption) (*Message, error) {
+	req := withChat(chatID, opts...)
 	msg := &Message{}
 	err := c.doRequestWithFiles("sendVideo", req, msg, inputFile{field: "video", name: filename})
 	return msg, err
@@ -507,17 +492,12 @@ SendAnimation sends animation to chat. Pass fileID to send. Available options:
 	- OptForceReply
 	- OptForceReplySelective
 */
-func (c *Client) SendAnimation(chatID string, fileID string, opts ...sendOption) (*Message, error) {
-	req := url.Values{}
-	req.Set("chat_id", chatID)
+func (c *Client) SendAnimation(chatID SendChatID, fileID string, opts ...sendOption) (*Message, error) {
+	req := withChat(chatID, opts...)
 	req.Set("animation", fileID)
-	for _, opt := range opts {
-		opt(req)
-	}
 	msg := &Message{}
 	var err error
-	if len(req.Get("thumb")) > 0 {
-		thumb := req.Get("thumb")
+	if thumb := req.Get("thumb"); len(thumb) > 0 {
 		req.Del("thumb")
 		err = c.doRequestWithFiles("sendAnimation", req, msg, inputFile{field: "thumb", name: thumb})
 	} else {
@@ -544,16 +524,11 @@ SendAnimationFile sends animation file contents to the chat. Pass filename to se
 	- OptForceReply
 	- OptForceReplySelective
 */
-func (c *Client) SendAnimationFile(chatID string, filename string, opts ...sendOption) (*Message, error) {
-	req := url.Values{}
-	req.Set("chat_id", chatID)
-	for _, opt := range opts {
-		opt(req)
-	}
+func (c *Client) SendAnimationFile(chatID SendChatID, filename string, opts ...sendOption) (*Message, error) {
+	req := withChat(chatID, opts...)
 	msg := &Message{}
 	files := []inputFile{{field: "animation", name: filename}}
-	if len(req.Get("thumb")) > 0 {
-		thumb := req.Get("thumb")
+	if thumb := req.Get("thumb"); len(thumb) > 0 {
 		req.Del("thumb")
 		files = append(files, inputFile{field: "thumb", name: thumb})
 	}
@@ -576,13 +551,9 @@ SendVoice sends audio file as a voice message. Pass file_id of previously upload
 	- OptForceReply
 	- OptForceReplySelective
 */
-func (c *Client) SendVoice(chatID string, fileID string, opts ...sendOption) (*Message, error) {
-	req := url.Values{}
-	req.Set("chat_id", chatID)
+func (c *Client) SendVoice(chatID SendChatID, fileID string, opts ...sendOption) (*Message, error) {
+	req := withChat(chatID, opts...)
 	req.Set("voice", fileID)
-	for _, opt := range opts {
-		opt(req)
-	}
 	msg := &Message{}
 	err := c.doRequest("sendVoice", req, msg)
 	return msg, err
@@ -603,12 +574,8 @@ SendVoiceFile sends the audio file as a voice message. Pass filename to send. Av
 	- OptForceReply
 	- OptForceReplySelective
 */
-func (c *Client) SendVoiceFile(chatID string, filename string, opts ...sendOption) (*Message, error) {
-	req := url.Values{}
-	req.Set("chat_id", chatID)
-	for _, opt := range opts {
-		opt(req)
-	}
+func (c *Client) SendVoiceFile(chatID SendChatID, filename string, opts ...sendOption) (*Message, error) {
+	req := withChat(chatID, opts...)
 	msg := &Message{}
 	err := c.doRequestWithFiles("sendVoice", req, msg, inputFile{field: "voice", name: filename})
 	return msg, err
@@ -637,17 +604,12 @@ SendVideoNote sends video note. Pass fileID of previously uploaded video note. A
 	- OptForceReply
 	- OptForceReplySelective
 */
-func (c *Client) SendVideoNote(chatID string, fileID string, opts ...sendOption) (*Message, error) {
-	req := url.Values{}
-	req.Set("chat_id", chatID)
+func (c *Client) SendVideoNote(chatID SendChatID, fileID string, opts ...sendOption) (*Message, error) {
+	req := withChat(chatID, opts...)
 	req.Set("video_note", fileID)
-	for _, opt := range opts {
-		opt(req)
-	}
 	msg := &Message{}
 	var err error
-	if len(req.Get("thumb")) > 0 {
-		thumb := req.Get("thumb")
+	if thumb := req.Get("thumb"); len(thumb) > 0 {
 		req.Del("thumb")
 		err = c.doRequestWithFiles("sendVideoNote", req, msg, inputFile{field: "thumb", name: thumb})
 	} else {
@@ -670,12 +632,8 @@ SendVideoNoteFile sends video note to chat. Pass filename to upload. Available o
 	- OptForceReply
 	- OptForceReplySelective
 */
-func (c *Client) SendVideoNoteFile(chatID string, filename string, opts ...sendOption) (*Message, error) {
-	req := url.Values{}
-	req.Set("chat_id", chatID)
-	for _, opt := range opts {
-		opt(req)
-	}
+func (c *Client) SendVideoNoteFile(chatID SendChatID, filename string, opts ...sendOption) (*Message, error) {
+	req := withChat(chatID, opts...)
 	files := []inputFile{{field: "video_note", name: filename}}
 	if len(req.Get("thumb")) > 0 {
 		thumb := req.Get("thumb")
@@ -723,14 +681,10 @@ type InputMediaVideo struct {
 func (InputMediaVideo) inputMedia() {}
 
 // SendMediaGroup send a group of photos or videos as an album
-func (c *Client) SendMediaGroup(chatID string, media []InputMedia, opts ...sendOption) ([]*Message, error) {
-	req := url.Values{}
-	req.Set("chat_id", chatID)
+func (c *Client) SendMediaGroup(chatID SendChatID, media []InputMedia, opts ...sendOption) ([]*Message, error) {
+	req := withChat(chatID)
 	m, _ := json.Marshal(media)
 	req.Set("media", string(m))
-	for _, opt := range opts {
-		opt(req)
-	}
 	var msgs []*Message
 	err := c.doRequest("sendMediaGroup", req, &msgs)
 	return msgs, err
@@ -745,6 +699,11 @@ var (
 	}
 )
 
+func setLarLong(req url.Values, latitude, longitude float64) {
+	req.Set("latitude", strconv.FormatFloat(latitude, 'f', -1, 64))
+	req.Set("longitude", strconv.FormatFloat(longitude, 'f', -1, 64))
+}
+
 /*
 SendLocation sends point on the map to chat. Available options:
 	- OptLivePeriod(period int)
@@ -757,14 +716,9 @@ SendLocation sends point on the map to chat. Available options:
 	- OptForceReply
 	- OptForceReplySelective
 */
-func (c *Client) SendLocation(chatID string, latitude, longitude float64, opts ...sendOption) (*Message, error) {
-	req := url.Values{}
-	req.Set("chat_id", chatID)
-	req.Set("latitude", strconv.FormatFloat(latitude, 'f', -1, 64))
-	req.Set("longitude", strconv.FormatFloat(longitude, 'f', -1, 64))
-	for _, opt := range opts {
-		opt(req)
-	}
+func (c *Client) SendLocation(chatID SendChatID, latitude, longitude float64, opts ...sendOption) (*Message, error) {
+	req := withChat(chatID, opts...)
+	setLarLong(req, latitude, longitude)
 	msg := &Message{}
 	err := c.doRequest("sendLocation", req, msg)
 	return msg, err
@@ -774,15 +728,10 @@ func (c *Client) SendLocation(chatID string, latitude, longitude float64, opts .
 EditMessageLiveLocation edits location in message sent by the bot. Available options:
 	- OptInlineKeyboardMarkup(markup *InlineKeyboardMarkup)
 */
-func (c *Client) EditMessageLiveLocation(chatID string, messageID int, latitude, longitude float64, opts ...sendOption) (*Message, error) {
-	req := url.Values{}
-	req.Set("chat_id", chatID)
-	req.Set("message_id", fmt.Sprint(messageID))
-	req.Set("latitude", fmt.Sprint(latitude))
-	req.Set("longitude", fmt.Sprint(longitude))
-	for _, opt := range opts {
-		opt(req)
-	}
+func (c *Client) EditMessageLiveLocation(chatID SendChatID, messageID int, latitude, longitude float64, opts ...sendOption) (*Message, error) {
+	req := withChat(chatID, opts...)
+	req.Set("message_id", strconv.Itoa(messageID))
+	setLarLong(req, latitude, longitude)
 	msg := &Message{}
 	err := c.doRequest("editMessageLiveLocation", req, msg)
 	return msg, err
@@ -795,8 +744,7 @@ EditInlineMessageLiveLocation edits location in message sent via the bot (using 
 func (c *Client) EditInlineMessageLiveLocation(inlineMessageID string, latitude, longitude float64, opts ...sendOption) error {
 	req := url.Values{}
 	req.Set("inline_message_id", inlineMessageID)
-	req.Set("latitude", fmt.Sprint(latitude))
-	req.Set("longitude", fmt.Sprint(longitude))
+	setLarLong(req, latitude, longitude)
 	for _, opt := range opts {
 		opt(req)
 	}
@@ -809,13 +757,9 @@ func (c *Client) EditInlineMessageLiveLocation(inlineMessageID string, latitude,
 StopMessageLiveLocation stop updating a live location message sent by the bot. Available options:
 	- OptInlineKeyboardMarkup(markup *InlineKeyboardMarkup)
 */
-func (c *Client) StopMessageLiveLocation(chatID string, messageID int, opts ...sendOption) (*Message, error) {
-	req := url.Values{}
-	req.Set("chat_id", chatID)
-	req.Set("message_id", fmt.Sprint(messageID))
-	for _, opt := range opts {
-		opt(req)
-	}
+func (c *Client) StopMessageLiveLocation(chatID SendChatID, messageID int, opts ...sendOption) (*Message, error) {
+	req := withChat(chatID, opts...)
+	req.Set("message_id", strconv.Itoa(messageID))
 	msg := &Message{}
 	err := c.doRequest("stopMessageLiveLocation", req, msg)
 	return msg, err
@@ -862,16 +806,11 @@ SendVenue sends information about a venue. Available options:
 	- OptForceReply
 	- OptForceReplySelective
 */
-func (c *Client) SendVenue(chatID string, latitude, longitude float64, title, address string, opts ...sendOption) (*Message, error) {
-	req := url.Values{}
-	req.Set("chat_id", chatID)
-	req.Set("latitude", fmt.Sprint(latitude))
-	req.Set("longitude", fmt.Sprint(longitude))
+func (c *Client) SendVenue(chatID SendChatID, latitude, longitude float64, title, address string, opts ...sendOption) (*Message, error) {
+	req := withChat(chatID, opts...)
+	setLarLong(req, latitude, longitude)
 	req.Set("title", title)
 	req.Set("address", address)
-	for _, opt := range opts {
-		opt(req)
-	}
 	msg := &Message{}
 	err := c.doRequest("sendVenue", req, msg)
 	return msg, err
@@ -904,14 +843,10 @@ SendContact sends phone contact. Available options:
 	- OptForceReply
 	- OptForceReplySelective
 */
-func (c *Client) SendContact(chatID, phoneNumber, firstName string, opts ...sendOption) (*Message, error) {
-	req := url.Values{}
-	req.Set("chat_id", chatID)
+func (c *Client) SendContact(chatID SendChatID, phoneNumber, firstName string, opts ...sendOption) (*Message, error) {
+	req := withChat(chatID, opts...)
 	req.Set("phone_number", phoneNumber)
 	req.Set("first_name", firstName)
-	for _, opt := range opts {
-		opt(req)
-	}
 	msg := &Message{}
 	err := c.doRequest("sendContact", req, msg)
 	return msg, err
@@ -946,9 +881,8 @@ SendChatAction sends bot chat action. Available actions:
 	- ActionRecordVideoNote
 	- ActionUploadVideoNote
 */
-func (c *Client) SendChatAction(chatID string, action chatAction) error {
-	req := url.Values{}
-	req.Set("chat_id", chatID)
+func (c *Client) SendChatAction(chatID SendChatID, action chatAction) error {
+	req := withChat(chatID)
 	req.Set("action", string(action))
 	var sent bool
 	return c.doRequest("sendChatAction", req, &sent)
@@ -979,9 +913,9 @@ GetUserProfilePhotos returs user's profile pictures. Available options:
 	- OptOffset(offset int)
 	- OptLimit(limit int)
 */
-func (c *Client) GetUserProfilePhotos(userID int, opts ...sendOption) (*UserProfilePhotos, error) {
+func (c *Client) GetUserProfilePhotos(userID int64, opts ...sendOption) (*UserProfilePhotos, error) {
 	req := url.Values{}
-	req.Set("user_id", fmt.Sprint(userID))
+	req.Set("user_id", strconv.FormatInt(userID, 10))
 	for _, opt := range opts {
 		opt(req)
 	}
@@ -1022,24 +956,19 @@ var (
 KickChatMember kicks user from group, supergroup or channel. Available options:
 	- OptUntilDate(date time.Time)
 */
-func (c *Client) KickChatMember(chatID string, userID int, opts ...sendOption) error {
-	req := url.Values{}
-	req.Set("chat_id", chatID)
-	req.Set("user_id", fmt.Sprint(userID))
-	for _, opt := range opts {
-		opt(req)
-	}
+func (c *Client) BanChatMember(chatID SendChatID, userID int64, opts ...sendOption) error {
+	req := withChat(chatID, opts...)
+	req.Set("user_id", strconv.FormatInt(userID, 10))
 	var kicked bool
-	return c.doRequest("kickChatMember", req, &kicked)
+	return c.doRequest("banChatMember", req, &kicked)
 }
 
 /*
 UnbanChatMember unban a previously kicked user in a supergroup or channel
 */
-func (c *Client) UnbanChatMember(chatID string, userID int) error {
-	req := url.Values{}
-	req.Set("chat_id", chatID)
-	req.Set("user_id", fmt.Sprint(userID))
+func (c *Client) UnbanChatMember(chatID SendChatID, userID int64) error {
+	req := withChat(chatID)
+	req.Set("user_id", strconv.FormatInt(userID, 10))
 	var unbanned bool
 	return c.doRequest("unbanChatMember", req, &unbanned)
 }
@@ -1048,15 +977,11 @@ func (c *Client) UnbanChatMember(chatID string, userID int) error {
 RestrictChatMember restrict a user in a supergroup. Available options:
 	- OptUntilDate(date time.Time)
 */
-func (c *Client) RestrictChatMember(chatID string, userID int, perm *ChatPermissions, opts ...sendOption) error {
-	req := url.Values{}
-	req.Set("chat_id", chatID)
-	req.Set("user_id", fmt.Sprint(userID))
+func (c *Client) RestrictChatMember(chatID SendChatID, userID int64, perm *ChatPermissions, opts ...sendOption) error {
+	req := withChat(chatID, opts...)
+	req.Set("user_id", strconv.FormatInt(userID, 10))
 	marshalledPermissions, _ := json.Marshal(perm)
 	req.Set("permissions", string(marshalledPermissions))
-	for _, opt := range opts {
-		opt(req)
-	}
 	var restricted bool
 	return c.doRequest("restrictChatMember", req, &restricted)
 }
@@ -1076,10 +1001,9 @@ type Promotions struct {
 /*
 PromoteChatMember promote or demote a user in a supergroup or a channel
 */
-func (c *Client) PromoteChatMember(chatID string, userID int, p *Promotions) error {
-	req := url.Values{}
-	req.Set("chat_id", chatID)
-	req.Set("user_id", fmt.Sprint(userID))
+func (c *Client) PromoteChatMember(chatID SendChatID, userID int64, p *Promotions) error {
+	req := withChat(chatID)
+	req.Set("user_id", strconv.FormatInt(userID, 10))
 	req.Set("can_change_info", fmt.Sprint(p.CanChangeInfo))
 	req.Set("can_post_messages", fmt.Sprint(p.CanPostMessages))
 	req.Set("can_edit_messages", fmt.Sprint(p.CanEditMessages))
@@ -1095,9 +1019,8 @@ func (c *Client) PromoteChatMember(chatID string, userID int, p *Promotions) err
 /*
 ExportChatInviteLink generate a new invite link for a chat; any previously generated link is revoked
 */
-func (c *Client) ExportChatInviteLink(chatID string) (string, error) {
-	req := url.Values{}
-	req.Set("chat_id", chatID)
+func (c *Client) ExportChatInviteLink(chatID SendChatID) (string, error) {
+	req := withChat(chatID)
 	var link string
 	err := c.doRequest("exportChatInviteLink", req, &link)
 	return link, err
@@ -1106,9 +1029,8 @@ func (c *Client) ExportChatInviteLink(chatID string) (string, error) {
 /*
 SetChatPhoto set a new profile photo for the chat
 */
-func (c *Client) SetChatPhoto(chatID string, filename string) error {
-	req := url.Values{}
-	req.Set("chat_id", chatID)
+func (c *Client) SetChatPhoto(chatID SendChatID, filename string) error {
+	req := withChat(chatID)
 	var updated bool
 	return c.doRequestWithFiles("setChatPhoto", req, &updated, inputFile{field: "photo", name: filename})
 }
@@ -1116,9 +1038,8 @@ func (c *Client) SetChatPhoto(chatID string, filename string) error {
 /*
 DeleteChatPhoto deleta a chat photo
 */
-func (c *Client) DeleteChatPhoto(chatID string) error {
-	req := url.Values{}
-	req.Set("chat_id", chatID)
+func (c *Client) DeleteChatPhoto(chatID SendChatID) error {
+	req := withChat(chatID)
 	var deleted bool
 	return c.doRequest("deleteChatPhoto", req, &deleted)
 }
@@ -1126,9 +1047,8 @@ func (c *Client) DeleteChatPhoto(chatID string) error {
 /*
 SetChatTitle change the title of the chat
 */
-func (c *Client) SetChatTitle(chatID, title string) error {
-	req := url.Values{}
-	req.Set("chat_id", chatID)
+func (c *Client) SetChatTitle(chatID SendChatID, title string) error {
+	req := withChat(chatID)
 	req.Set("title", title)
 	var set bool
 	return c.doRequest("setChatTitle", req, &set)
@@ -1137,9 +1057,8 @@ func (c *Client) SetChatTitle(chatID, title string) error {
 /*
 SetChatDescription change the description of a supergroup or a channel
 */
-func (c *Client) SetChatDescription(chatID, description string) error {
-	req := url.Values{}
-	req.Set("chat_id", chatID)
+func (c *Client) SetChatDescription(chatID SendChatID, description string) error {
+	req := withChat(chatID)
 	req.Set("description", description)
 	var set bool
 	return c.doRequest("setChatDescription", req, &set)
@@ -1149,13 +1068,9 @@ func (c *Client) SetChatDescription(chatID, description string) error {
 PinChatMessage pin a message in a supergroup or a channel. Available options:
 	- OptDisableNotification
 */
-func (c *Client) PinChatMessage(chatID string, messageID int, opts ...sendOption) error {
-	req := url.Values{}
-	req.Set("chat_id", chatID)
-	req.Set("message_id", fmt.Sprint(messageID))
-	for _, opt := range opts {
-		opt(req)
-	}
+func (c *Client) PinChatMessage(chatID SendChatID, messageID int, opts ...sendOption) error {
+	req := withChat(chatID, opts...)
+	req.Set("message_id", strconv.Itoa(messageID))
 	var pinned bool
 	return c.doRequest("pinChatMessage", req, &pinned)
 }
@@ -1163,9 +1078,8 @@ func (c *Client) PinChatMessage(chatID string, messageID int, opts ...sendOption
 /*
 UnpinChatMessage unpin a message in a supergroup or a channel
 */
-func (c *Client) UnpinChatMessage(chatID string) error {
-	req := url.Values{}
-	req.Set("chat_id", chatID)
+func (c *Client) UnpinChatMessage(chatID SendChatID) error {
+	req := withChat(chatID)
 	var unpinned bool
 	return c.doRequest("unpinChatMessage", req, &unpinned)
 }
@@ -1173,9 +1087,8 @@ func (c *Client) UnpinChatMessage(chatID string) error {
 /*
 LeaveChat leave a group, supergroup or channel
 */
-func (c *Client) LeaveChat(chatID string) error {
-	req := url.Values{}
-	req.Set("chat_id", chatID)
+func (c *Client) LeaveChat(chatID SendChatID) error {
+	req := withChat(chatID)
 	var left bool
 	return c.doRequest("leaveChat", req, &left)
 }
@@ -1183,9 +1096,8 @@ func (c *Client) LeaveChat(chatID string) error {
 /*
 GetChat get up to date information about the chat
 */
-func (c *Client) GetChat(chatID string) (*Chat, error) {
-	req := url.Values{}
-	req.Set("chat_id", chatID)
+func (c *Client) GetChat(chatID SendChatID) (*Chat, error) {
+	req := withChat(chatID)
 	chat := &Chat{}
 	err := c.doRequest("getChat", req, chat)
 	return chat, err
@@ -1217,9 +1129,8 @@ type ChatMember struct {
 /*
 GetChatAdministrators get a list of administrators in a chat
 */
-func (c *Client) GetChatAdministrators(chatID string) ([]*ChatMember, error) {
-	req := url.Values{}
-	req.Set("chat_id", chatID)
+func (c *Client) GetChatAdministrators(chatID SendChatID) ([]*ChatMember, error) {
+	req := withChat(chatID)
 	members := []*ChatMember{}
 	err := c.doRequest("getChatAdministrators", req, &members)
 	return members, err
@@ -1228,9 +1139,8 @@ func (c *Client) GetChatAdministrators(chatID string) ([]*ChatMember, error) {
 /*
 GetChatMembersCount returns the number of members in chat
 */
-func (c *Client) GetChatMembersCount(chatID string) (int, error) {
-	req := url.Values{}
-	req.Set("chat_id", chatID)
+func (c *Client) GetChatMembersCount(chatID SendChatID) (int, error) {
+	req := withChat(chatID)
 	var count int
 	err := c.doRequest("getChatMembersCount", req, &count)
 	return count, err
@@ -1239,10 +1149,9 @@ func (c *Client) GetChatMembersCount(chatID string) (int, error) {
 /*
 GetChatMember get information about a member of a chat
 */
-func (c *Client) GetChatMember(chatID string, userID int) (*ChatMember, error) {
-	req := url.Values{}
-	req.Set("chat_id", chatID)
-	req.Set("user_id", fmt.Sprint(userID))
+func (c *Client) GetChatMember(chatID SendChatID, userID int64) (*ChatMember, error) {
+	req := withChat(chatID)
+	req.Set("user_id", strconv.FormatInt(userID, 10))
 	member := &ChatMember{}
 	err := c.doRequest("getChatMember", req, member)
 	return member, err
@@ -1251,9 +1160,8 @@ func (c *Client) GetChatMember(chatID string, userID int) (*ChatMember, error) {
 /*
 SetChatStickerSet set a new group sticker set for a supergroup
 */
-func (c *Client) SetChatStickerSet(chatID, stickerSetName string) error {
-	req := url.Values{}
-	req.Set("chat_id", chatID)
+func (c *Client) SetChatStickerSet(chatID SendChatID, stickerSetName string) error {
+	req := withChat(chatID)
 	req.Set("sticker_set_name", stickerSetName)
 	var set bool
 	return c.doRequest("setChatStickerSet", req, &set)
@@ -1262,9 +1170,8 @@ func (c *Client) SetChatStickerSet(chatID, stickerSetName string) error {
 /*
 DeleteChatStickerSet delete a group sticker set from a supergroup
 */
-func (c *Client) DeleteChatStickerSet(chatID string) error {
-	req := url.Values{}
-	req.Set("chat_id", chatID)
+func (c *Client) DeleteChatStickerSet(chatID SendChatID) error {
+	req := withChat(chatID)
 	var deleted bool
 	return c.doRequest("deleteChatStickerSet", req, &deleted)
 }
@@ -1341,14 +1248,10 @@ EditMessageText edit text and game messages sent by the bot. Available options:
 	- OptDisableWebPagePreview
 	- OptInlineKeyboardMarkup(markup *InlineKeyboardMarkup)
 */
-func (c *Client) EditMessageText(chatID string, messageID int, text string, opts ...sendOption) (*Message, error) {
-	req := url.Values{}
-	req.Set("chat_id", chatID)
-	req.Set("message_id", fmt.Sprint(messageID))
+func (c *Client) EditMessageText(chatID SendChatID, messageID int, text string, opts ...sendOption) (*Message, error) {
+	req := withChat(chatID, opts...)
+	req.Set("message_id", strconv.Itoa(messageID))
 	req.Set("text", text)
-	for _, opt := range opts {
-		opt(req)
-	}
 	msg := &Message{}
 	err := c.doRequest("editMessageText", req, msg)
 	return msg, err
@@ -1378,14 +1281,10 @@ EditMessageCaption edit message caption sent by the bot. Available options:
 	- OptParseModeMarkdown
 	- OptInlineKeyboardMarkup(markup *InlineKeyboardMarkup)
 */
-func (c *Client) EditMessageCaption(chatID string, messageID int, caption string, opts ...sendOption) (*Message, error) {
-	req := url.Values{}
-	req.Set("chat_id", chatID)
-	req.Set("message_id", fmt.Sprint(messageID))
+func (c *Client) EditMessageCaption(chatID SendChatID, messageID int, caption string, opts ...sendOption) (*Message, error) {
+	req := withChat(chatID, opts...)
+	req.Set("message_id", strconv.Itoa(messageID))
 	req.Set("caption", caption)
-	for _, opt := range opts {
-		opt(req)
-	}
 	msg := &Message{}
 	err := c.doRequest("editMessageCaption", req, msg)
 	return msg, err
@@ -1412,13 +1311,9 @@ func (c *Client) EditInlineMessageCaption(inlineMessageID, caption string, opts 
 EditMessageReplyMarkup edit only the reply markup of messages sent by the bot. Available options:
 	- OptInlineKeyboardMarkup(markup *InlineKeyboardMarkup)
 */
-func (c *Client) EditMessageReplyMarkup(chatID string, messageID int, opts ...sendOption) (*Message, error) {
-	req := url.Values{}
-	req.Set("chat_id", chatID)
-	req.Set("message_id", fmt.Sprint(messageID))
-	for _, opt := range opts {
-		opt(req)
-	}
+func (c *Client) EditMessageReplyMarkup(chatID SendChatID, messageID int, opts ...sendOption) (*Message, error) {
+	req := withChat(chatID, opts...)
+	req.Set("message_id", strconv.Itoa(messageID))
 	msg := &Message{}
 	err := c.doRequest("editMessageReplyMarkup", req, msg)
 	return msg, err
@@ -1441,10 +1336,9 @@ func (c *Client) EditInlineMessageReplyMarkup(inlineMessageID string, opts ...se
 /*
 DeleteMessage delete a message, including service messages
 */
-func (c *Client) DeleteMessage(chatID string, messageID int) error {
-	req := url.Values{}
-	req.Set("chat_id", chatID)
-	req.Set("message_id", fmt.Sprint(messageID))
+func (c *Client) DeleteMessage(chatID SendChatID, messageID int) error {
+	req := withChat(chatID)
+	req.Set("message_id", strconv.Itoa(messageID))
 	var deleted bool
 	return c.doRequest("deleteMessage", req, &deleted)
 }
@@ -1460,12 +1354,8 @@ SendStickerFile send .webp file sticker. Available options:
 	- OptForceReply
 	- OptForceReplySelective
 */
-func (c *Client) SendStickerFile(chatID string, filename string, opts ...sendOption) (*Message, error) {
-	req := url.Values{}
-	req.Set("chat_id", chatID)
-	for _, opt := range opts {
-		opt(req)
-	}
+func (c *Client) SendStickerFile(chatID SendChatID, filename string, opts ...sendOption) (*Message, error) {
+	req := withChat(chatID, opts...)
 	msg := &Message{}
 	err := c.doRequestWithFiles("sendSticker", req, msg, inputFile{field: "sticker", name: filename})
 	return msg, err
@@ -1482,13 +1372,9 @@ SendSticker send previously uploaded sticker. Available options:
 	- OptForceReply
 	- OptForceReplySelective
 */
-func (c *Client) SendSticker(chatID, fileID string, opts ...sendOption) (*Message, error) {
-	req := url.Values{}
-	req.Set("chat_id", chatID)
+func (c *Client) SendSticker(chatID SendChatID, fileID string, opts ...sendOption) (*Message, error) {
+	req := withChat(chatID, opts...)
 	req.Set("sticker", fileID)
-	for _, opt := range opts {
-		opt(req)
-	}
 	msg := &Message{}
 	err := c.doRequest("sendSticker", req, msg)
 	return msg, err
@@ -2474,9 +2360,9 @@ SendPoll sends native telegram poll. Available Options:
 	- OptForceReply
 	- OptForceReplySelective
 */
-func (c *Client) SendPoll(chatID string, question string, options []string, opts ...sendOption) (*Message, error) {
+func (c *Client) SendPoll(chatID SendChatID, question string, options []string, opts ...sendOption) (*Message, error) {
 	req := url.Values{}
-	req.Set("chat_id", chatID)
+	req.Set("chat_id", chatID.asChatID())
 	req.Set("question", question)
 	marshalledOptions, _ := json.Marshal(options)
 	req.Set("options", string(marshalledOptions))

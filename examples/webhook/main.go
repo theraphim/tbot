@@ -12,7 +12,7 @@ func main() {
 		tbot.WithWebhook("https://test.com", ":8080"))
 	c := bot.Client()
 	bot.HandleMessage("ping", func(m *tbot.Message) {
-		c.SendMessage(m.Chat.ID, "pong")
+		c.SendMessage(tbot.ChatID(m.Chat.ID), "pong")
 	})
 	log.Fatal(bot.Start())
 }
