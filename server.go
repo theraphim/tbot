@@ -72,17 +72,6 @@ func New(token string, options ...ServerOption) *Server {
 		token:      token,
 		logger:     nopLogger{},
 		baseURL:    apiBaseURL,
-
-		editMessageHandler:     func(*Message) {},
-		channelPostHandler:     func(*Message) {},
-		editChannelPostHandler: func(*Message) {},
-		inlineQueryHandler:     func(*InlineQuery) {},
-		inlineResultHandler:    func(*ChosenInlineResult) {},
-		callbackHandler:        func(*CallbackQuery) {},
-		shippingHandler:        func(*ShippingQuery) {},
-		preCheckoutHandler:     func(*PreCheckoutQuery) {},
-		pollHandler:            func(*Poll) {},
-		pollAnswerHandler:      func(*PollAnswer) {},
 	}
 
 	s.ctx, s.cancel = context.WithCancel(context.Background())
