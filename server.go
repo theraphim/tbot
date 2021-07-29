@@ -234,7 +234,7 @@ func (s *Server) processLongPollUpdates() error {
 		}
 		ctx, cancel := context.WithTimeout(s.ctx, time.Second*120)
 		req, err := http.NewRequestWithContext(ctx, http.MethodGet, endpoint.String(), nil)
-		if err == nil {
+		if err != nil {
 			return err
 		}
 		req.URL.RawQuery = params.Encode()
