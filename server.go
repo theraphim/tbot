@@ -122,7 +122,7 @@ func WithLogger(logger Logger) ServerOption {
 
 func (s *Server) processBatchOfUpdates(updates []*Update) {
 	for _, v := range updates {
-		go s.processSingleUpdate(v)
+		s.processSingleUpdate(v)
 	}
 }
 
