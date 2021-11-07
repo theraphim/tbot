@@ -235,16 +235,17 @@ func (s *Server) processLongPollUpdates() error {
 		ctx, cancel := context.WithTimeout(s.ctx, time.Second*120)
 		req, err := http.NewRequestWithContext(ctx, http.MethodGet, endpoint.String(), nil)
 		if err != nil {
+			cancel()
 			return err
 		}
 		req.URL.RawQuery = params.Encode()
 		resp, err := s.httpClient.Do(req)
-		cancel()
 		if err != nil {
 			s.logger.Errorf("unable to perform request: %v", err)
 			select {
 			case <-time.After(time.Second * 5):
 			case <-s.ctx.Done():
+				cancel()
 				return s.ctx.Err()
 			}
 			continue
@@ -258,6 +259,7 @@ func (s *Server) processLongPollUpdates() error {
 		if err != nil {
 			s.logger.Errorf("unable to decode response: %v", err)
 			resp.Body.Close()
+			cancel()
 			select {
 			case <-time.After(time.Second * 5):
 			case <-s.ctx.Done():
@@ -266,6 +268,7 @@ func (s *Server) processLongPollUpdates() error {
 			continue
 		}
 		err = resp.Body.Close()
+		cancel()
 		if err != nil {
 			s.logger.Errorf("unable to close response body: %v", err)
 		}
